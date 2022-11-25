@@ -1,25 +1,59 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
-
+import { BrowserRouter, Route, Routes, Link } from 'react-router-dom'
+import { Admin, Analytics, Dashboard, Home, Landing } from './pages';
+import ProtectedRoute from './components/ProtectedRoute';
 function App() {
+
+  const [user, setUser] = useState(null)
+
+  const login = () => {
+    setUser({
+      id: 1,
+      name: "Lucas",
+      permissions: ["analize", "admin"]
+    })
+  }
+
+  const logout = () => setUser(null)
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Navigation />
+      {user ? <button onClick={logout}>logout</button> : <button onClick={login}>login</button>}
+      <Routes>
+        <Route index element={<Landing />} />
+        <Route path='/landing' element={<Landing />} />
+        {/* Multiples Rutas con Outlet */}
+        <Route element={<ProtectedRoute isAllowed={!!user} reDirect={"/"}/>}>
+            <Route path='/home' element={<Home />} />
+            <Route path='/dashboard' element={<Dashboard />} />
+        </Route>
+        {/* Rutas y Permisos */}
+            <Route path='/analytics' element={
+              <ProtectedRoute isAllowed={!!user && user.permissions.includes("analize")} reDirect={"/"} >
+                <Analytics />
+              </ProtectedRoute>
+          } />
+            <Route path='/admin' element={
+              <ProtectedRoute isAllowed={!!user && user.permissions.includes("admin")} reDirect={"/"} >
+              <Admin/>
+            </ProtectedRoute>
+            } />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
+function Navigation() {
+  return (
+    <nav>
+      <Link to="/landing">landing</Link>
+      <Link to="/home">home</Link>
+      <Link to="/dashboard">dashboard</Link>
+      <Link to="/analytics">analytics</Link>
+      <Link to="/admin">admin</Link>
+    </nav>
+  )
+}
 export default App;
+
